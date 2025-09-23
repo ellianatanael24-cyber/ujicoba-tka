@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <title>Uji Coba TKA</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      background: #f4f4f4;
+    }
+    header {
+      background: #003366;
+      color: white;
+      padding: 10px;
+      text-align: center;
+      position: fixed;
+      top: 0;
+      width: 100%;
+      z-index: 1000;
+    }
+    #logo {
+      height: 40px;
+      vertical-align: middle;
+      margin-right: 10px;
+    }
+    #container {
+      margin-top: 70px;
+      padding: 20px;
+      text-align: center;
+    }
+    #timer {
+      position: fixed;
+      top: 10px;
+      right: 20px;
+      font-weight: bold;
+      font-size: 18px;
+      color: yellow;
+      background: rgba(0,0,0,0.6);
+      padding: 5px 10px;
+      border-radius: 6px;
+      z-index: 1001;
+      display: none;
+    }
+    #logBox {
+      position: fixed;
+      bottom: 10px;
+      left: 10px;
+      background: rgba(0,0,0,0.7);
+      color: white;
+      font-size: 12px;
+      padding: 8px;
+      border-radius: 6px;
+      max-width: 200px;
+      max-height: 120px;
+      overflow-y: auto;
+      display: none;
+      z-index: 1001;
+    }
+    .hidden { display: none; }
+    .warning { background: red !important; color: white !important; }
+    iframe {
+      width: 100%;
+      height: 500px;
+      border: none;
+    }
+    button {
+      padding: 10px 20px;
+      font-size: 16px;
+      cursor: pointer;
+      margin-top: 20px;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <img id="logo" src="https://upload.wikimedia.org/wikipedia/commons/6/6e/ANBK_logo.png" alt="Logo">
+    <span id="judul">Uji Coba TKA</span>
+  </header>
+
+  <div id="timer">00:00</div>
+  <div id="logBox"></div>
+
+  <div id="container">
+    <!-- Halaman Petunjuk -->
+    <div id="petunjuk">
+      <h2>Petunjuk Ujian</h2>
+      <p>1. Baca soal dengan teliti.<br>
+         2. Jangan keluar dari tab ujian lebih dari 3 kali.<br>
+         3. Waktu ujian akan berjalan setelah Anda klik tombol "Mulai Ujian".<br>
+         4. Jika waktu habis, ujian otomatis ditutup.</p>
+      <button onclick="mulaiUjian()">Mulai Ujian</button>
+    </div>
+
+    <!-- Halaman Ujian -->
+    <div id="ujian" class="hidden">
+      <iframe src="https://forms.gle/qVe7sedX4x4fmomh8">
+        Loading…
+      </iframe>
+      <br>
+      <button onclick="selesaiUjian()">Selesai Ujian</button>
+    </div>
+
+    <!-- Halaman Selesai -->
+    <div id="selesai" class="hidden">
+      <h2>✅ Selamat, ujian telah selesai!</h2>
+      <p>Jawaban Anda sudah terkirim.</p>
+    </div>
+
+    <!-- Halaman Gagal -->
+    <div id="gagal" class="hidden">
+      <h2>❌ Maaf, ujian Anda gagal</h2>
+      <p id="alasan"></p>
+    </div>
+  </div>
+
+  <script>
+    // ==== Konfigurasi ====
+    let durasiUjian = 6 * 60; // detik (contoh 6 menit)
+    let pelanggaranMaks = 3;
+
+    // ==== Variabel ====
+    let sisaWaktu = durasiUjian;
+    let intervalTimer;
+    let pelanggaran = 0;
+
+    const timerDiv = document.getElementById("timer");
+    const logBox = document.getElementById("logBox");
+
+    // ==== Fungsi ====
+    function mulaiUjian() {
+      document.getElementById("petunjuk").classList.add("hidden");
+      document.getElementById("ujian").classList.remove("hidden");
+      timerDiv.style.display = "block";
+      logBox.style.display = "block";
+      startTimer();
+      addLog("Ujian dimulai");
+    }
+
+    function startTimer() {
+      intervalTimer = setInterval(() => {
+        sisaWaktu--;
+        updateTimerDisplay();
+
+	// 5 menit terakhir beri peringatan
+	if (sisaWaktu === 300) {
+  	  addLog("⚠️ Sisa waktu 5 menit, periksa jawaban Anda!");
+  	  alert("Sisa waktu 5 menit, segera periksa jawaban!");
+	}
+
+
+        // 1 menit terakhir beri peringatan
+        if (sisaWaktu === 60) {
+          document.body.classList.add("warning");
+          addLog("⚠️ Sisa waktu 1 menit, segera submit!");
+        }
+
+        if (sisaWaktu <= 0) {
+          clearInterval(intervalTimer);
+          gagalUjian("Waktu habis");
+        }
+      }, 1000);
+    }
+
+    function updateTimerDisplay() {
+      let menit = Math.floor(sisaWaktu / 60);
+      let detik = sisaWaktu % 60;
+      timerDiv.textContent =
+        String(menit).padStart(2, "0") + ":" + String(detik).padStart(2, "0");
+    }
+
+    function selesaiUjian() {
+      clearInterval(intervalTimer);
+      document.getElementById("ujian").classList.add("hidden");
+      document.getElementById("selesai").classList.remove("hidden");
+      timerDiv.style.display = "none";
+      logBox.style.display = "none";
+      addLog("Ujian diselesaikan manual");
+    }
+
+    function gagalUjian(alasan) {
+      clearInterval(intervalTimer);
+      document.getElementById("ujian").classList.add("hidden");
+      document.getElementById("gagal").classList.remove("hidden");
+      document.getElementById("alasan").textContent = alasan;
+      timerDiv.style.display = "none";
+      logBox.style.display = "none";
+      addLog("Ujian gagal: " + alasan);
+    }
+
+    function addLog(pesan) {
+      let waktu = new Date().toLocaleTimeString();
+      logBox.innerHTML += `<div>[${waktu}] ${pesan}</div>`;
+      logBox.scrollTop = logBox.scrollHeight;
+    }
+
+    // ==== Deteksi Tab Out ====
+    document.addEventListener("visibilitychange", () => {
+      if (document.hidden && document.getElementById("ujian").classList.contains("hidden") === false) {
+        pelanggaran++;
+        addLog("Pindah tab! (" + pelanggaran + ")");
+        if (pelanggaran >= pelanggaranMaks) {
+          gagalUjian("Terlalu sering pindah tab");
+        }
+      }
+    });
+  </script>
+</body>
+</html>
