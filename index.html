@@ -127,14 +127,44 @@
     const timerDiv = document.getElementById("timer");
     const logBox = document.getElementById("logBox");
 
-    // ==== Fungsi ====
-    function mulaiUjian() {
-      document.getElementById("petunjuk").classList.add("hidden");
-      document.getElementById("ujian").classList.remove("hidden");
-      timerDiv.style.display = "block";
-      logBox.style.display = "block";
-      startTimer();
-      addLog("Ujian dimulai");
+    // ==== Paksa Fullscreen ====
+	function mintaFullscreen() {
+  	let elem = document.documentElement;
+  	if (elem.requestFullscreen) {
+    	elem.requestFullscreen();
+  	} else if (elem.mozRequestFullScreen) { // Firefox
+    	elem.mozRequestFullScreen();
+  	} else if (elem.webkitRequestFullscreen) { // Chrome, Safari
+    	elem.webkitRequestFullscreen();
+  	} else if (elem.msRequestFullscreen) { // IE/Edge
+    	elem.msRequestFullscreen();
+  	}
+	}
+
+// Modifikasi mulai ujian agar masuk fullscreen
+	function mulaiUjian() {
+  mintaFullscreen(); // masuk fullscreen dulu
+  document.getElementById("petunjuk").classList.add("hidden");
+  document.getElementById("ujian").classList.remove("hidden");
+  timerDiv.style.display = "block";
+  logBox.style.display = "block";
+  startTimer();
+  addLog("Ujian dimulai (fullscreen aktif)");
+	}
+
+// Deteksi keluar fullscreen
+document.addEventListener("fullscreenchange", () => {
+  if (!document.fullscreenElement && 
+      !document.webkitFullscreenElement && 
+      !document.mozFullScreenElement && 
+      !document.msFullscreenElement) {
+    pelanggaran++;
+    addLog("Keluar fullscreen! (" + pelanggaran + ")");
+    if (pelanggaran >= pelanggaranMaks) {
+      gagalUjian("Keluar dari fullscreen terlalu sering");
+    }
+  	}
+	});
     }
 
     function startTimer() {
@@ -207,3 +237,4 @@
   </script>
 </body>
 </html>
+
